@@ -224,5 +224,5 @@ fn main() {
         .map(print)
         .count();
 
-    println!("Done ({}/{})", found, total);
+    println!("Done ({found}/{total})");
 }
