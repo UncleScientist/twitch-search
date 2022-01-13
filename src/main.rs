@@ -78,7 +78,7 @@ fn print(entry: Entry) {
     print!("https://twitch.tv/{:<14} | ", entry.display_name);
     print!("{:>4} viewers | ", entry.viewer_count);
     print!("{} | ", entry.live_duration);
-    print!("{}\n", entry.title);
+    println!("{}", entry.title);
 }
 
 fn to_entry(value: &mut Value) -> Entry {
@@ -198,7 +198,7 @@ fn main() {
         found += entries
             .into_iter()
             .filter(|e| filter(e, word_boundary, &search_term, &exclude))
-            .map(|e| print(e))
+            .map(print)
             .count();
 
         if page.is_none() {
