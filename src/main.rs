@@ -20,6 +20,10 @@ struct Args {
     /// Search on word boundary
     #[clap(short, long)]
     word: bool,
+
+    /// limit output to n entries, 0 means all
+    #[clap(short, long, default_value = "0")]
+    limit: usize,
 }
 
 macro_rules! to_str {
@@ -194,28 +198,31 @@ fn main() {
 
     if let Some(term) = &search_term {
         println!("Searching for \"{}\"", term);
-    } else {
-        println!("Showing all entries in Software & Game Dev");
     }
 
     let mut total = 0;
-    let mut found = 0;
+    let mut result = Vec::new();
 
+    // Even if there's a limit in args.limit, we still fetch all entries
+    // so we can get the total count for the final line.
     let mut page = None;
     loop {
         let (entries, p) = fetch(page);
         total += entries.len();
         page = p;
-        found += entries
-            .into_iter()
-            .filter(|e| filter(e, word_boundary, &search_term, &exclude))
-            .map(print)
-            .count();
-
+        result.extend(entries);
         if page.is_none() {
             break;
         }
     }
+
+    let limit = if args.limit == 0 { total } else { args.limit };
+    let found = result
+        .into_iter()
+        .filter(|e| filter(e, word_boundary, &search_term, &exclude))
+        .take(limit)
+        .map(print)
+        .count();
 
     println!("Done ({}/{})", found, total);
 }
