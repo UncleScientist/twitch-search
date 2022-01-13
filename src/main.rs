@@ -11,7 +11,7 @@ const ROOT_URL: &str = "https://api.twitch.tv/helix/streams?first=100;game_id=14
 #[clap(about, version, author)]
 struct Args {
     /// Term to search for
-    term: String,
+    term: Option<String>,
 
     /// Streamers to exclude
     #[clap(short = 'x', long)]
@@ -53,16 +53,22 @@ struct Entry {
     live_duration: String,
 }
 
-fn filter(entry: &Entry, word: bool, term: &str, ignored_names: &[String]) -> bool {
+fn filter(entry: &Entry, word: bool, term: &Option<String>, ignored_names: &[String]) -> bool {
     if ignored_names.contains(&entry.display_name.to_lowercase()) {
         return false;
     }
+    if term.is_none() {
+        return true;
+    }
+
+    let term = term.as_ref().unwrap();
 
     if word {
         for e in entry
             .title
             .to_lowercase()
-            .split(|c: char| !c.is_alphabetic()) {
+            .split(|c: char| !c.is_alphabetic())
+        {
             if e == term {
                 return true;
             }
@@ -118,7 +124,8 @@ fn fetch(after: Option<String>) -> (Vec<Entry>, Option<String>) {
     // -----------------------------------------------------------------------------
     //     - Proxy -
     // -----------------------------------------------------------------------------
-    let proxy = env::var("https_proxy").ok()
+    let proxy = env::var("https_proxy")
+        .ok()
         .and_then(|p| ureq::Proxy::new(p).ok());
 
     let mut agent = ureq::AgentBuilder::new();
@@ -185,7 +192,11 @@ fn main() {
 
     let exclude = exclusions(args.exclude);
 
-    println!("Searching for \"{}\"", search_term);
+    if let Some(term) = &search_term {
+        println!("Searching for \"{}\"", term);
+    } else {
+        println!("Showing all entries in Software & Game Dev");
+    }
 
     let mut total = 0;
     let mut found = 0;
