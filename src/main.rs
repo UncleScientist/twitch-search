@@ -97,7 +97,7 @@ fn to_entry(value: &mut Value) -> Entry {
     Entry {
         lang: to_str!(value, "language"),
         display_name: to_str!(value, "user_name"),
-        title: to_str!(value, "title"),
+        title: to_str!(value, "title").replace("\n", "…"),
         viewer_count: to_num!(value, "viewer_count"),
         live_duration: to_instant(&to_str!(value, "started_at")),
     }
